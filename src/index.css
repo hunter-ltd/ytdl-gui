@@ -6,7 +6,7 @@
 }
 
 body {
-  font-family: 'Lato', sans-serif;
+  font-family: "Lato", sans-serif;
   margin: auto;
   max-width: 38rem;
   padding: 2rem;
@@ -41,6 +41,7 @@ body p {
   color: white;
   padding: 12px;
   margin: 10px;
+  font-weight: bold;
   background-color: var(--glow-color);
 }
 
