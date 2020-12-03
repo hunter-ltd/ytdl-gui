@@ -2,15 +2,13 @@
 const electron = require("electron");
 const path = require("path");
 const fs = require("fs");
-const { ipcRenderer } = require("electron");
 
 class Store {
   constructor(options) {
-    const getUserDataPath = async () => await ipcRenderer.invoke("getPath", "userData").then((result) => {
-        this.path = path.join(result, options.configName + ".json");
-        this.data = parseDataFile(this.path, options.defaults);
-    });
-    getUserDataPath()
+    const userDataPath = (electron.app || electron.remote.app).getPath('userData');
+    this.path = path.join(userDataPath, 'user-settings.json')
+
+    this.data = parseDataFile(this.path, options.defaults);
   }
 
   get(key) {
@@ -27,7 +25,18 @@ var parseDataFile = (filePath, defaults) => {
   try {
     return JSON.parse(fs.readFileSync(filePath));
   } catch (error) {
-    return defaults;
+    data = {};
+    console.log(defaults);
+    for (const key in defaults) {
+      if (defaults.hasOwnProperty(key)) {
+        const option = defaults[key];
+        console.log(key)
+        data[key] = option;
+      }
+    }
+    console.log(data)
+    fs.writeFileSync(filePath, JSON.stringify(data));
+    return data;
   }
 };
 
