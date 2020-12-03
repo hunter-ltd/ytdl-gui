@@ -2,16 +2,15 @@ const ytdl = require("ytdl-core");
 // const exec = require("child_process").exec; // Used to execute shell commands
 const ffmpeg = require("fluent-ffmpeg");
 const Store = require("./config.js");
-const { ipcRenderer } = require("electron");
+const electron = require('electron');
 const path = require('path');
 
 const downloadBtn = document.getElementById("download-btn");
-const cockAndBallTorture = async () => await ipcRenderer.invoke("getPath", "downloads");
 
 const store = new Store({
     configName: "user-settings",
     defaults: {
-        savePath: cockAndBallTorture(),
+        savePath: (electron.app || electron.remote.app).getPath("downloads"),
     },
 });
 
