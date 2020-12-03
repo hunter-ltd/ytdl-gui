@@ -1,18 +1,16 @@
 // This follows the example found here: https://medium.com/cameron-nokes/how-to-store-user-data-in-electron-3ba6bf66bc1e
-
 const electron = require("electron");
 const path = require("path");
 const fs = require("fs");
+const { ipcRenderer } = require("electron");
 
 class Store {
   constructor(options) {
-    const userDataPath = (electron.app || electron.remote.app).getPath(
-      "userData"
-    ); // change this to ipcRenderer later
-
-    this.path = path.join(userDataPath, options.configName + ".json");
-
-    this.data = parseDataFile(this.path, options.defaults);
+    const getUserDataPath = async () => await ipcRenderer.invoke("getPath", "userData").then((result) => {
+        this.path = path.join(result, options.configName + ".json");
+        this.data = parseDataFile(this.path, options.defaults);
+    });
+    getUserDataPath()
   }
 
   get(key) {
