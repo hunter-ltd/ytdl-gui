@@ -19,7 +19,7 @@ body p {
   color: var(--secondary-text-color);
 }
 
-#link-box,
+#url-box,
 #download-btn {
   border: none;
   border-radius: 4px;
@@ -28,11 +28,12 @@ body p {
   transition: all ease-in-out 0.15s;
 }
 
-#link-box {
+#url-box {
   width: 100%;
+  box-shadow: 0px 0px 8px black;
 }
 
-#link-box:focus {
+#url-box:focus {
   box-shadow: 0px 0px 8px var(--glow-color);
   outline: none;
 }
