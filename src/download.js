@@ -1,12 +1,25 @@
 const ytdl = require("ytdl-core");
 // const exec = require("child_process").exec; // Used to execute shell commands
 const ffmpeg = require("fluent-ffmpeg");
+const Store = require("./config.js");
+const { ipcRenderer } = require("electron");
+const path = require('path');
+
+const downloadBtn = document.getElementById("download-btn");
+const cockAndBallTorture = async () => await ipcRenderer.invoke("getPath", "downloads");
+
+const store = new Store({
+    configName: "user-settings",
+    defaults: {
+        savePath: cockAndBallTorture(),
+    },
+});
 
 let removeIllegalChars = (filepath) => {
   const illegal = /[\\/:*?\"<>|]/g;
   if (illegal.test(filepath)) {
-    let new_path = filepath.replace(illegal, "");
-    return new_path;
+    let newPath = filepath.replace(illegal, "");
+    return newPath;
   } else {
     return filepath;
   }
@@ -37,16 +50,18 @@ let createErrorElement = (error) => {
 };
 
 const download = () => {
-  let url = document.getElementById("link-box").value;
+  let url = document.getElementById("url-box").value;
+  let file_name = removeIllegalChars(document.getElementById("name-box").value);
+  let file_path = path.join(store.get("savePath"), file_name + ".mp3");
   url = removeExtraURLInfo(url);
+  
   try {
     var stream = ytdl(url, { filter: "audioonly" });
-    ffmpeg(stream).save("C:\\Users\\gener\\Downloads\\test.mp3");
+    ffmpeg(stream).save(file_path);
     document
       .getElementsByClassName("downloader")[0]
       .removeChild(document.getElementById("error-out"));
   } catch (error) {
-    // handle TypeError for when the error box doesn't exist
     if (!(error instanceof TypeError)) {
       console.error(error);
       createErrorElement(error);
@@ -54,13 +69,15 @@ const download = () => {
   }
 };
 
-document.getElementById("download-btn").addEventListener("click", (event) => {
+downloadBtn.addEventListener("click", (event) => {
   download();
 });
 
-document.getElementById('link-box').addEventListener('keyup', (event) => {
-    if (event.key == "Enter") {
-        event.preventDefault();
-        document.getElementById('download-btn').click();
-    }
+(
+  document.getElementById("url-box") && document.getElementById("name-box")
+).addEventListener("keyup", (event) => {
+  if (event.key == "Enter") {
+    event.preventDefault();
+    downloadBtn.click();
+  }
 });
