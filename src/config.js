@@ -8,7 +8,8 @@ class Store {
   constructor(options) {
     const userDataPath = (electron.app || electron.remote.app).getPath(
       "userData"
-    );
+    ); // change this to ipcRenderer later
+
     this.path = path.join(userDataPath, options.configName + ".json");
 
     this.data = parseDataFile(this.path, options.defaults);
