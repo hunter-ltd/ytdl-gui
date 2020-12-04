@@ -1,6 +1,7 @@
 :root {
-  --bg-color: white;
-  --primary-text-color: black;
+  --bg-color: #171716;
+  --second-bg-color: #070707;
+  --primary-text-color: white;
   --secondary-text-color: gray;
   --glow-color: #e01400;
 }
@@ -20,34 +21,46 @@ body p {
 }
 
 #url-box,
+#name-box,
 #download-btn {
+  color: var(--primary-text-color);
+  background-color: var(--second-bg-color);
   border: none;
-  border-radius: 4px;
+  outline: none;
+  border-radius: 6px;
   font-size: larger;
   text-align: center;
-  transition: all ease-in-out 0.15s;
+  transition: all ease-in-out 0.3s;
+  box-shadow: 0px 0px 4px black;
 }
 
 #url-box {
   width: 100%;
-  box-shadow: 0px 0px 8px black;
+  line-height: 2em;
 }
 
-#url-box:focus {
+#name-box {
+  line-height: 1.33em;
+}
+
+#url-box:focus,
+#name-box:focus {
   box-shadow: 0px 0px 8px var(--glow-color);
   outline: none;
 }
 
 #download-btn {
-  color: white;
+  color: var(--secondary-text-color);
   padding: 12px;
   margin: 10px;
   font-weight: bold;
-  background-color: var(--glow-color);
+  background-color: var(--second-bg-color);
 }
 
 #download-btn:hover {
+  color: var(--primary-text-color);
+  background-color: var(--glow-color);
   cursor: pointer;
-  box-shadow: 0px 0px 8px var(--glow-color);
+  box-shadow: 0px 0px 12px var(--glow-color);
   outline: none;
 }
