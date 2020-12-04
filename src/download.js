@@ -10,7 +10,7 @@ const downloadBtn = document.getElementById("download-btn");
 const store = new Store({
     configName: "user-settings",
     defaults: {
-        savePath: (electron.app || electron.remote.app).getPath("downloads"),
+        savePath: electron.remote.app.getPath("downloads"),
     },
 });
 
@@ -49,10 +49,13 @@ let createErrorElement = (error) => {
 };
 
 const download = () => {
+  let status = document.getElementById('status');
   let url = document.getElementById("url-box").value;
   let file_name = removeIllegalChars(document.getElementById("name-box").value);
   let file_path = path.join(store.get("savePath"), file_name + ".mp3");
   url = removeExtraURLInfo(url);
+
+  status.innerHTML = "<i>Downloading...</i>"
   
   try {
     var stream = ytdl(url, { filter: "audioonly" });
@@ -60,9 +63,11 @@ const download = () => {
     document
       .getElementsByClassName("downloader")[0]
       .removeChild(document.getElementById("error-out"));
+    status.innerHTML = "<i>Done!</i>"
   } catch (error) {
+    status.innerHTML = "<i>Error</i>"
+    console.error(error);
     if (!(error instanceof TypeError)) {
-      console.error(error);
       createErrorElement(error);
     }
   }
@@ -72,11 +77,11 @@ downloadBtn.addEventListener("click", (event) => {
   download();
 });
 
-(
-  document.getElementById("url-box") && document.getElementById("name-box")
-).addEventListener("keyup", (event) => {
-  if (event.key == "Enter") {
-    event.preventDefault();
-    downloadBtn.click();
-  }
+[document.getElementById('url-box'), document.getElementById('name-box')].forEach(input => {
+  input.addEventListener('keyup', event => {
+    if (event.key == "Enter") {
+      event.preventDefault();
+      downloadBtn.click();
+    }
+  })
 });
