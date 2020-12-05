@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('path');
 const Store = require('./config.js');
 
@@ -11,7 +11,7 @@ const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 500,
-    height: 450,
+    height: 550,
     webPreferences: {
       nodeIntegration: true,
       enableRemoteModule: true,
@@ -23,6 +23,55 @@ const createWindow = () => {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
+
+  const menu = Menu.buildFromTemplate([
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'GitHub Page',
+          click() {
+            shell.openExternal('https://github.com/oxapathic/ytdl-gui')
+          }
+        },
+        {type: 'separator'},
+        {
+          label: 'Exit',
+          click() {
+            app.quit()
+          }
+        },
+      ]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        {
+          label: 'Save location',
+          click() {
+            var settingsWindow = new BrowserWindow({
+              width: 500,
+              height: 450,
+              frame: true,
+              webPreferences: {
+                nodeIntegration: true,
+                enableRemoteModule: true,
+              }
+            });
+            settingsWindow.openDevTools()
+            settingsWindow.on('close', () => {
+              settingsWindow = null
+            });
+            settingsWindow.loadURL(path.join("file://", __dirname, 'settings.html'));
+            settingsWindow.show()
+          }
+        }
+      ]
+    }
+  ])
+
+  Menu.setApplicationMenu(menu);
+
 };
 
 // This method will be called when Electron has finished
