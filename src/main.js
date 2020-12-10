@@ -45,9 +45,9 @@ const createWindow = () => {
                 enableRemoteModule: true,
               }
             });
-            settingsWindow.openDevTools()
+            // settingsWindow.openDevTools();
             settingsWindow.on('close', () => {
-              settingsWindow = null
+              settingsWindow = null;
             });
             settingsWindow.loadURL(path.join("file://", __dirname, 'settings.html'));
             settingsWindow.show()
