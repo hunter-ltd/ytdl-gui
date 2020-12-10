@@ -67,14 +67,16 @@ const download = () => {
   let file_path = path.join(store.get("savePath"), file_name + ".mp3");
   url = removeExtraURLInfo(url);
 
-  status.innerHTML = "<i>Downloading...</i>"
-  
+  status.innerHTML = "<i>Downloading...</i>";
+  status.style.color = 'gray';
 
   saveFile(url, file_path).then(() => {
     status.innerHTML = "<i>Done!</i>";
+    status.style.color = "#00c210";
     electron.shell.showItemInFolder(file_path); // Opens the folder and highlights the file
   }, (error) => {
-    status.innerHTML = "<i>Error: </i>"
+    status.innerHTML = "<i>Error: </i>";
+    status.style.color = "#e01400";
     console.error(error);
     if (!(error instanceof TypeError)) {
       status.innerHTML += error.message;
