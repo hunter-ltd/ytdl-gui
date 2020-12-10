@@ -74,7 +74,12 @@ const download = () => {
   });
   let status = document.getElementById('status');
   let url = document.getElementById("url-box").value;
-  let file_name = removeIllegalChars(document.getElementById("name-box").value);
+  let file_name = document.getElementById("name-box").value;
+  if (file_name.trim().length != 0) {
+    file_name = removeIllegalChars(file_name);
+  } else {
+    file_name = "youtube download";
+  }
   let file_path = path.join(store.get("savePath"), file_name + ".mp3");
   url = removeExtraURLInfo(url);
 
