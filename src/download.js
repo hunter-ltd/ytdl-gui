@@ -1,5 +1,7 @@
 const ytdl = require("ytdl-core");
-const ffmpeg = require("fluent-ffmpeg");
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+const ffmpeg = require('fluent-ffmpeg');
+ffmpeg.setFfmpegPath(ffmpegPath);
 const Store = require("./config.js");
 const electron = require('electron');
 const path = require('path');
