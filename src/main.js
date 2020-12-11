@@ -33,6 +33,8 @@ const createWindow = () => {
             shell.openExternal('https://github.com/oxapathic/ytdl-gui')
           }
         },
+        { label: "About YTDL GUI", selector: "orderFrontStandardAboutPanel:" },
+        { type: "separator" },
         {
           label: 'Save location',
           click() {
