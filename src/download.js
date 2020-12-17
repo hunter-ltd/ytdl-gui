@@ -29,27 +29,35 @@ let removeExtraURLInfo = (url) => {
 };
 
 
-var saveFile = async (url, file_path) => {
-  var stream = ytdl(url, { filter: "audioonly" });
-  ffmpeg(stream).save(file_path);
-  var size = 0, mtime = 0;
-  while (true) {
-    try {
-      var stats = fs.statSync(file_path);
-    } catch (err) {
-      await new Promise(r => setTimeout(r, 500));
-      continue;
+var saveFile = (url, file_path) => {
+  return new Promise(async (resolve, reject) => {
+    var stream = ytdl(url, { filter: "audioonly" });
+    ffmpeg(stream).save(file_path);
+
+    stream.on('error', (err) => {
+      reject(err);
+    });
+
+    var size = 0, mtime = 0;
+    while (true) {
+      try {
+        var stats = fs.statSync(file_path);
+      } catch (err) {
+        await new Promise(r => setTimeout(r, 500));
+        continue;
+      }
+      if (!(stats.size == size || stats.mtime == mtime)) {
+        size = stats.size;
+        mtime = stats.mtime;
+        await new Promise(r => setTimeout(r, 500));
+        continue;
+      }
+      console.log("done");
+      break;
     }
-    if (!(stats.size == size || stats.mtime == mtime)) {
-      size = stats.size;
-      mtime = stats.mtime;
-      await new Promise(r => setTimeout(r, 500));
-      continue;
-    }
-    console.log("done");
-    break;
-  }
-  return 0;
+    resolve(file_path);
+
+  })
 }
 
 
@@ -85,22 +93,22 @@ var download = async () => {
       file_name = document.getElementById("name-box").value,
       file_path = path.join(store.get("savePath"), file_name + ".mp3");
     
-  let exists = await urlExists(url).then((data) => {
-    console.log("exists");
-    status.innerHTML = '';
-    status.style.color = 'gray';
-    return true;
-  }).catch((err) => {
-    console.log("not exists");
-    status.innerHTML = "<i>Error: URL does not exist.</i>";
-    status.style.color = "#e01400";
-    return false;
-  });
+  // let exists = await urlExists(url).then((data) => {
+  //   console.log("exists");
+  //   status.innerHTML = '';
+  //   status.style.color = 'gray';
+  //   return true;
+  // }).catch((err) => {
+  //   console.log("not exists");
+  //   status.innerHTML = "<i>Error: URL does not exist.</i>";
+  //   status.style.color = "#e01400";
+  //   return false;
+  // });
 
-  if (!exists) {
-    console.log("some shit");
-    return;
-  }
+  // if (!exists) {
+  //   console.log("doesn't exist");
+  //   return;
+  // }
 
   if (file_name.trim().length != 0) {
     file_name = removeIllegalChars(file_name);
@@ -112,11 +120,11 @@ var download = async () => {
   status.innerHTML = "<i>Downloading...</i>";
   status.style.color = 'gray';
 
-  saveFile(url, file_path).then(() => {
-    status.innerHTML = "<i>Done!</i>";
+  saveFile(url, file_path).then((save_path) => {
+    status.innerHTML = `<i>${save_path} successfully saved</i>;`
     status.style.color = "#00c210";
     electron.shell.showItemInFolder(file_path); // Opens the folder and highlights the file
-  }, (error) => {
+  }).catch((error) => {
     status.innerHTML = "<i>Error: </i>";
     status.style.color = "#e01400";
     console.error(error);
