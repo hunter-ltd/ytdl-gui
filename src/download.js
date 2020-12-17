@@ -63,10 +63,8 @@ var saveFile = (url, file_path) => {
 
 var urlExists = async (url) => {
   return new Promise((resolve, reject) => {
-    console.log(url);
     let options = {method: 'GET', hostname: url, port:443, path: '/'},
         req = https.request(url, (r) => {
-          console.log(r.headers);
           r.on('data', (d) => {
             resolve(d);
           });
@@ -95,19 +93,16 @@ var download = async () => {
       file_path = path.join(store.get("savePath"), file_name + ".mp3");
     
   let exists = await urlExists(url).then((data) => {
-    console.log("exists");
     status.innerHTML = '';
     status.style.color = 'gray';
     return true;
   }).catch((err) => {
-    console.log("not exists");
     status.innerHTML = "<i>Error: URL does not exist.</i>";
     status.style.color = "#e01400";
     return false;
   });
 
   if (!exists) {
-    console.log("doesn't exist");
     return;
   }
 
