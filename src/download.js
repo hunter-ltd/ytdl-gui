@@ -6,6 +6,7 @@ const Store = require("./config.js");
 const electron = require('electron');
 const path = require('path');
 const fs = require('fs');
+const https = require('https');
 
 const downloadBtn = document.getElementById("download-btn");
 
@@ -51,22 +52,61 @@ var saveFile = async (url, file_path) => {
   return 0;
 }
 
-const download = () => {
+
+var urlExists = async (url) => {
+  return new Promise((resolve, reject) => {
+    console.log(url);
+    let options = {method: 'GET', hostname: url, port:443, path: '/'},
+        req = https.request(options, (r) => {
+          console.log(JSON.stringify(r.headers));
+          r.on('data', (d) => {
+            resolve(d);
+          });
+        });
+  
+    req.on('error', (e) => {
+      reject(e);
+    });
+  
+    req.end();
+  })
+}
+
+
+var download = async () => {
   const store = new Store({
     configName: "user-settings",
     defaults: {
         savePath: electron.remote.app.getPath("downloads"),
       },
   });
-  let status = document.getElementById('status');
-  let url = document.getElementById("url-box").value;
-  let file_name = document.getElementById("name-box").value;
+  let status = document.getElementById('status'),
+      url = document.getElementById("url-box").value,
+      file_name = document.getElementById("name-box").value,
+      file_path = path.join(store.get("savePath"), file_name + ".mp3");
+    
+  let exists = await urlExists(url).then((data) => {
+    console.log("exists");
+    status.innerHTML = '';
+    status.style.color = 'gray';
+    return true;
+  }).catch((err) => {
+    console.log("not exists");
+    status.innerHTML = "<i>Error: URL does not exist.</i>";
+    status.style.color = "#e01400";
+    return false;
+  });
+
+  if (!exists) {
+    console.log("some shit");
+    return;
+  }
+
   if (file_name.trim().length != 0) {
     file_name = removeIllegalChars(file_name);
   } else {
     file_name = "youtube download";
   }
-  let file_path = path.join(store.get("savePath"), file_name + ".mp3");
   url = removeExtraURLInfo(url);
 
   status.innerHTML = "<i>Downloading...</i>";
@@ -87,7 +127,7 @@ const download = () => {
 };
 
 downloadBtn.addEventListener("click", (event) => {
-  download();
+  download(document.getElementById('url-box').value);
 });
 
 [document.getElementById('url-box'), document.getElementById('name-box')].forEach(input => {
