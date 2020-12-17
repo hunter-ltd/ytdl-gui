@@ -65,14 +65,15 @@ var urlExists = async (url) => {
   return new Promise((resolve, reject) => {
     console.log(url);
     let options = {method: 'GET', hostname: url, port:443, path: '/'},
-        req = https.request(options, (r) => {
-          console.log(JSON.stringify(r.headers));
+        req = https.request(url, (r) => {
+          console.log(r.headers);
           r.on('data', (d) => {
             resolve(d);
           });
         });
   
     req.on('error', (e) => {
+      console.error(e);
       reject(e);
     });
   
@@ -93,22 +94,22 @@ var download = async () => {
       file_name = document.getElementById("name-box").value,
       file_path = path.join(store.get("savePath"), file_name + ".mp3");
     
-  // let exists = await urlExists(url).then((data) => {
-  //   console.log("exists");
-  //   status.innerHTML = '';
-  //   status.style.color = 'gray';
-  //   return true;
-  // }).catch((err) => {
-  //   console.log("not exists");
-  //   status.innerHTML = "<i>Error: URL does not exist.</i>";
-  //   status.style.color = "#e01400";
-  //   return false;
-  // });
+  let exists = await urlExists(url).then((data) => {
+    console.log("exists");
+    status.innerHTML = '';
+    status.style.color = 'gray';
+    return true;
+  }).catch((err) => {
+    console.log("not exists");
+    status.innerHTML = "<i>Error: URL does not exist.</i>";
+    status.style.color = "#e01400";
+    return false;
+  });
 
-  // if (!exists) {
-  //   console.log("doesn't exist");
-  //   return;
-  // }
+  if (!exists) {
+    console.log("doesn't exist");
+    return;
+  }
 
   if (file_name.trim().length != 0) {
     file_name = removeIllegalChars(file_name);
