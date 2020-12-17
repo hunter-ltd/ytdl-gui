@@ -6,7 +6,7 @@ const Store = require("./config.js");
 const electron = require('electron');
 const path = require('path');
 const fs = require('fs');
-const https = require('https');
+const fetch = require('node-fetch');
 
 const downloadBtn = document.getElementById("download-btn");
 
@@ -19,6 +19,7 @@ let removeIllegalChars = (filepath) => {
     return filepath;
   }
 };
+
 
 let removeExtraURLInfo = (url) => {
   if (/&/.test(url)) {
@@ -52,7 +53,7 @@ var saveFile = (url, file_path) => {
         await new Promise(r => setTimeout(r, 500));
         continue;
       }
-      console.log("done");
+      console.log(`'${file_path}' saved successfully`);
       break;
     }
     resolve(file_path);
@@ -61,22 +62,19 @@ var saveFile = (url, file_path) => {
 }
 
 
+const parseTitle = (body) => {
+  let match = body.match(/<title>([^<]*)<\/title>/);
+  return match[1];
+}
+
+
 var urlExists = async (url) => {
   return new Promise((resolve, reject) => {
-    let options = {method: 'GET', hostname: url, port:443, path: '/'},
-        req = https.request(url, (r) => {
-          r.on('data', (d) => {
-            resolve(d);
-          });
-        });
-  
-    req.on('error', (e) => {
-      console.error(e);
-      reject(e);
-    });
-  
-    req.end();
-  })
+    fetch(url)
+      .then(res => res.text())
+      .then(body => resolve(parseTitle(body)))
+      .catch((err) => reject(err));
+  });
 }
 
 
@@ -87,30 +85,30 @@ var download = async () => {
         savePath: electron.remote.app.getPath("downloads"),
       },
   });
+
   let status = document.getElementById('status'),
       url = document.getElementById("url-box").value,
       file_name = document.getElementById("name-box").value,
-      file_path = path.join(store.get("savePath"), file_name + ".mp3");
-    
-  let exists = await urlExists(url).then((data) => {
-    status.innerHTML = '';
-    status.style.color = 'gray';
-    return true;
-  }).catch((err) => {
-    status.innerHTML = "<i>Error: URL does not exist.</i>";
-    status.style.color = "#e01400";
-    return false;
-  });
+      exists = await urlExists(url).then((title) => {
+        if (file_name.trim().length != 0) {
+          file_name = removeIllegalChars(file_name);
+        } else {
+          file_name = title.replace(" - YouTube", "");
+        }
+        status.innerHTML = '';
+        status.style.color = 'gray';
+        return true;
+      }).catch((err) => {
+        status.innerHTML = "<i>Error: URL does not exist.</i>";
+        status.style.color = "#e01400";
+        return false;
+      });
 
   if (!exists) {
     return;
   }
 
-  if (file_name.trim().length != 0) {
-    file_name = removeIllegalChars(file_name);
-  } else {
-    file_name = "youtube download";
-  }
+  file_path = path.join(store.get("savePath"), file_name + ".mp3");
   url = removeExtraURLInfo(url);
 
   status.innerHTML = "<i>Downloading...</i>";
