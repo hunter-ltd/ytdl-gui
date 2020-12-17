@@ -10,6 +10,11 @@ const ytdl = require("ytdl-core");
 const downloadBtn = document.getElementById("download-btn");
 ffmpeg.setFfmpegPath(ffmpegPath); // ffmpeg is a built-in package and needs its path manually set
 
+/**
+ * Removes characters deemed illegal for usage in file naming
+ * @param {string} filepath The file path that needs to be parsed
+ * @returns {string} A legal string
+ */
 let removeIllegalChars = (filepath) => {
   const illegal = /[\\/:*?\"<>|]/g;
   if (illegal.test(filepath)) {
@@ -20,6 +25,11 @@ let removeIllegalChars = (filepath) => {
   }
 };
 
+/**
+ * Removes any extra info after the watch ID in a YouTube link
+ * @param {string} url The URL to be parsed
+ * @returns {string} A link with only the watch ID attached
+ */
 let removeExtraURLInfo = (url) => {
   if (/&/.test(url)) {
     return url.split("&")[0];
@@ -28,6 +38,13 @@ let removeExtraURLInfo = (url) => {
   }
 };
 
+
+/**
+ * 
+ * @param {string} url The URL of the video to be downloaded
+ * @param {string} file_path The path to save the video at
+ * @returns {Promise} A promise resolving with the file path and rejecting with an error
+ */
 var saveFile = (url, file_path) => {
   return new Promise(async (resolve, reject) => {
     var stream = ytdl(url, { filter: "audioonly" });
@@ -59,11 +76,23 @@ var saveFile = (url, file_path) => {
   });
 };
 
+
+/**
+ * 
+ * @param {string} body HTML code for the body of a webpage
+ * @returns {string} The title of the given HTML page
+ */
 const parseTitle = (body) => {
   let match = body.match(/<title>([^<]*)<\/title>/);
   return match[1];
 };
 
+
+/**
+ * 
+ * @param {string} url Checks if the given URL exists on the internet
+ * @returns {Promise} A promise resolving with the title of the webpage at the URL and rejecting with an error
+ */
 var urlExists = async (url) => {
   return new Promise((resolve, reject) => {
     fetch(url)
@@ -73,6 +102,10 @@ var urlExists = async (url) => {
   });
 };
 
+
+/**
+ * Downloads a YouTube video
+ */
 var download = async () => {
   const store = new Store({
     configName: "user-settings",
