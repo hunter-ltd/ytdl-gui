@@ -25,7 +25,7 @@ class Store {
 }
 
 /**
- * 
+ * Loads user settings from the settings file
  * @param {string} filePath Path to the JSON settings file
  * @param {dict} defaults Default settings to be used if the settings file cannot be found (or does not exist)
  */
