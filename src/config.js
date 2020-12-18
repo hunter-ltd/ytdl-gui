@@ -3,6 +3,9 @@ const electron = require("electron");
 const path = require("path");
 const fs = require("fs");
 
+/**
+ * Used to store user settings in JSON format
+ */
 class Store {
   constructor(options) {
     const userDataPath = (electron.app || electron.remote.app).getPath('userData');
@@ -21,6 +24,11 @@ class Store {
   }
 }
 
+/**
+ * 
+ * @param {string} filePath Path to the JSON settings file
+ * @param {dict} defaults Default settings to be used if the settings file cannot be found (or does not exist)
+ */
 var parseDataFile = (filePath, defaults) => {
   try {
     return JSON.parse(fs.readFileSync(filePath));
