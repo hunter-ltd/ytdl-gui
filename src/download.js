@@ -3,6 +3,7 @@ const fetch = require("node-fetch");
 const ffmpeg = require("fluent-ffmpeg");
 const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
 const fs = require("fs");
+const https = require('https');
 const path = require("path");
 const Store = require("./config.js");
 const ytdl = require("ytdl-core");
@@ -93,7 +94,7 @@ const parseTitle = (body) => {
  * @param {string} url Checks if the given URL exists on the internet
  * @returns {Promise} A promise resolving with the title of the webpage at the URL and rejecting with an error
  */
-var urlExists = async (url) => {
+var urlExists = (url) => {
   return new Promise((resolve, reject) => {
     fetch(url)
       .then((res) => res.text())
@@ -101,6 +102,48 @@ var urlExists = async (url) => {
       .catch((err) => reject(err));
   });
 };
+
+/**
+ * 
+ * @param {string} url URL to be downloaded from
+ * @param {string} file_name File name to save the download to
+ * @param {HTMLElement} status HTML element updated with the download status
+ */
+let listOptions = async (url, file_name, status) => {
+  const store = new Store({
+    configName: "user-settings",
+    defaults: {
+      savePath: electron.remote.app.getPath("downloads"),
+    },
+  });
+
+  status.style.color = 'gray';
+  status.innerHTML = "Checking URL..."
+  let exists = await urlExists(url)
+    .then((title) => {
+      if (file_name.trim() != 0) {
+        file_name = removeIllegalChars(file_name);
+      } else {
+        file_name = title.replace(" - YouTube", "")
+      }
+      status.innerHTML = "URL exists!";
+      return true;
+    })
+    .catch((err) => {
+      status.innerHTML = "<i>Error: URL does not exist.</i>";
+      status.style.color = "#e01400";
+      return false;
+    });
+
+    if (!exists) {
+      return;
+    }
+
+    await ytdl.getBasicInfo(url).then((info) => {
+      console.log(info.videoDetails.title);
+    })
+    console.log("found it!");
+}
 
 
 /**
@@ -164,6 +207,14 @@ let download = async () => {
 
 downloadBtn.addEventListener("click", (event) => {
   download(document.getElementById("url-box").value);
+});
+
+document.getElementById('check-btn').addEventListener('click', (event) => {
+  let status = document.getElementById("status"),
+      url = document.getElementById("url-box").value,
+      file_name = document.getElementById("name-box").value;
+  
+  listOptions(url, file_name, status);
 });
 
 [
