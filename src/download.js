@@ -40,8 +40,8 @@ let removeExtraURLInfo = (url) => {
 
 
 /**
- * 
- * @param {string} url The URL of the video to be downloaded
+ * Downloads and saves a YouTube video
+ * @param {string} url The URL of the YouTube video to be downloaded
  * @param {string} file_path The path to save the video at
  * @returns {Promise} A promise resolving with the file path and rejecting with an error
  */
@@ -78,7 +78,7 @@ var saveFile = (url, file_path) => {
 
 
 /**
- * 
+ * Parses HTML code for the title tag
  * @param {string} body HTML code for the body of a webpage
  * @returns {string} The title of the given HTML page
  */
@@ -89,7 +89,7 @@ const parseTitle = (body) => {
 
 
 /**
- * 
+ * Checks if a URL exists on the web
  * @param {string} url Checks if the given URL exists on the internet
  * @returns {Promise} A promise resolving with the title of the webpage at the URL and rejecting with an error
  */
@@ -106,7 +106,7 @@ var urlExists = async (url) => {
 /**
  * Downloads a YouTube video
  */
-var download = async () => {
+let download = async () => {
   const store = new Store({
     configName: "user-settings",
     defaults: {
