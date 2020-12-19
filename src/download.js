@@ -96,10 +96,19 @@ const parseTitle = (body) => {
  */
 var urlExists = (url) => {
   return new Promise((resolve, reject) => {
-    fetch(url)
-      .then((res) => res.text())
-      .then((body) => resolve(parseTitle(body)))
-      .catch((err) => reject(err));
+    https.get(url, (res) => {
+      res.on('data', async (d) => {
+        await ytdl.getBasicInfo(url).then((info) => {
+          resolve(info.videoDetails.title);
+        });
+      }).on('error', (e) => {
+        reject(e);
+      });
+    });
+    // fetch(url)
+    //   .then((res) => res.text())
+    //   .then((body) => resolve(parseTitle(body)))
+    //   .catch((err) => reject(err));
   });
 };
 
@@ -168,7 +177,7 @@ let download = async () => {
       if (file_name.trim().length != 0) {
         file_name = removeIllegalChars(file_name);
       } else {
-        file_name = title.replace(" - YouTube", "");
+        file_name = title;
       }
       status.innerHTML = "URL exists!";
       return true;
