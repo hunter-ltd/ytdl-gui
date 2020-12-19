@@ -24,6 +24,19 @@ let removeIllegalChars = (filepath) => {
   }
 };
 
+/**
+ * Removes any extra info after the watch ID in a YouTube link
+ * @param {string} url The URL to be parsed
+ * @returns {string} A link with only the watch ID attached
+ */
+let removeExtraYTInfo = (url) => {
+  if (/&/.test(url)) {
+    return url.split("&")[0];
+  } else {
+    return url;
+  }
+};
+
 
 let download = async () => {
   const store = new Store({
@@ -37,4 +50,13 @@ let download = async () => {
     url = document.getElementById("url-box").value,
     file_name = document.getElementById("name-box").value;
 
+  ytdl.getBasicInfo(url).then((info) => {
+    if (file_name.trim().length != 0) {
+      file_name = removeIllegalChars(file_name);
+    } else {
+      file_name = info.videoDetails.title;
+    }
+  })
+
+  console.log(file_name);
 };
