@@ -26,8 +26,8 @@ let urlExists = (url) => {
             });
         }).on('error', (e) => {
             reject(e);
-        })
-    })
+        });
+    });
 }
 
 module.exports = {removeExtraYTInfo, urlExists}
