@@ -43,17 +43,23 @@ let removeExtraYTInfo = (url) => {
   }
 };
 
+/**
+ *
+ * @param {string} save_path Absolute path of the file being saved
+ * @param {string} url URL of the video to be downloaded
+ * @param {HTMLElement} status Status element
+ */
+let saveFile = async (save_path, url, status) => {
+  return new Promise(async (resolve, reject) => {
+    let stream = ytdl(url, { filter: "audioonly" }),
+      output = ffmpeg(stream).save(save_path);
 
-let saveFile = (save_path, url) => {
-  let stream = ytdl(url, { filter: 'audioonly' });
-  let output = ffmpeg(stream).save(save_path);
-
-  Promise.all([stream, output]).then((values) => {
-    console.log('done!');
-  }).catch((err) => {
-    console.error(err);
-  })
-}
+    [stream, output].forEach((item) => item.on("error", (err) => reject(err)));
+    output
+      .on("start", () => (status.innerHTML = "Downloading..."))
+      .on("end", () => resolve(save_path));
+  });
+};
 
 /**
  * Downloads a YouTube video
@@ -74,7 +80,7 @@ let download = async (url, status, file_name, store) => {
       } else {
         file_name = info.videoDetails.title;
       }
-      console.log(file_name);
+      console.log(file_name + ".mp3");
     });
   } catch (err) {
     console.error(err);
@@ -86,8 +92,18 @@ let download = async (url, status, file_name, store) => {
       status.innerHTML += err.message;
     }
   }
-  let save_path = path.join(store.get('savePath'), file_name);
-  saveFile(save_path, url);
+  let save_path = path.join(store.get("savePath"), file_name + ".mp3");
+  saveFile(save_path, url, status)
+    .then((save_path) => {
+      status.style.color = "#00c210";
+      status.innerHTML = `${path.basename(save_path)} saved successfully.`;
+      electron.shell.showItemInFolder(save_path);
+    })
+    .catch((err) => {
+      console.error(err);
+      status.style.color = "#e01400";
+      status.innerHTML = `Error: ${err.message}`;
+    });
 };
 
 downloadBtn.addEventListener("click", (event) => {
