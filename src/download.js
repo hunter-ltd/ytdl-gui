@@ -6,8 +6,14 @@ const path = require("path");
 const Store = require("./config.js");
 const ytdl = require("ytdl-core");
 
-const downloadBtn = document.getElementById("download-btn");
 ffmpeg.setFfmpegPath(ffmpegPath); // ffmpeg is a built-in package and needs its path manually set
+const downloadBtn = document.getElementById("download-btn");
+const store = new Store({
+  configName: "user-settings",
+  defaults: {
+    savePath: electron.remote.app.getPath("downloads"),
+  },
+});
 
 /**
  * Removes characters deemed illegal for usage in file naming
@@ -37,18 +43,27 @@ let removeExtraYTInfo = (url) => {
   }
 };
 
-let download = async () => {
-  const store = new Store({
-    configName: "user-settings",
-    defaults: {
-      savePath: electron.remote.app.getPath("downloads"),
-    },
-  });
 
-  let status = document.getElementById("status"),
-    url = document.getElementById("url-box").value,
-    file_name = document.getElementById("name-box").value;
+let saveFile = (save_path, url) => {
+  let stream = ytdl(url, { filter: 'audioonly' });
+  let output = ffmpeg(stream).save(save_path);
 
+  Promise.all([stream, output]).then((values) => {
+    console.log('done!');
+  }).catch((err) => {
+    console.error(err);
+  })
+}
+
+/**
+ * Downloads a YouTube video
+ * @param {string} url URL
+ * @param {HTMLElement} status A p element to show the status of the download
+ * @param {string} file_name File name
+ * @param {Store} store Settings storage object
+ */
+let download = async (url, status, file_name, store) => {
+  url = removeExtraYTInfo(url);
   status.style.color = "gray";
   status.innerHTML = "Checking URL...";
   // Not all of the errors reject promises, some are just thrown
@@ -71,10 +86,16 @@ let download = async () => {
       status.innerHTML += err.message;
     }
   }
+  let save_path = path.join(store.get('savePath'), file_name);
+  saveFile(save_path, url);
 };
 
 downloadBtn.addEventListener("click", (event) => {
-  download();
+  let status = document.getElementById("status"),
+    url = document.getElementById("url-box").value,
+    file_name = document.getElementById("name-box").value;
+
+  download(url, status, file_name, store);
 });
 
 // Pressing Enter clicks the download button
