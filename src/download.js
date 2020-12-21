@@ -76,3 +76,16 @@ let download = async () => {
 downloadBtn.addEventListener("click", (event) => {
   download();
 });
+
+// Pressing Enter clicks the download button
+[
+  document.getElementById("url-box"),
+  document.getElementById("name-box"),
+].forEach((input) => {
+  input.addEventListener("keyup", (event) => {
+    if (event.key == "Enter") {
+      event.preventDefault();
+      downloadBtn.click();
+    }
+  });
+});
