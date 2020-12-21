@@ -37,7 +37,6 @@ let removeExtraYTInfo = (url) => {
   }
 };
 
-
 let download = async () => {
   const store = new Store({
     configName: "user-settings",
@@ -50,20 +49,30 @@ let download = async () => {
     url = document.getElementById("url-box").value,
     file_name = document.getElementById("name-box").value;
 
-  status.style.color = 'gray';
-  status.innerHTML = 'Checking URL...';
-  await ytdl.getBasicInfo(url).then((info) => {
-    if (file_name.trim().length != 0) {
-      file_name = removeIllegalChars(file_name);
+  status.style.color = "gray";
+  status.innerHTML = "Checking URL...";
+  // Not all of the errors reject promises, some are just thrown
+  try {
+    await ytdl.getBasicInfo(url).then((info) => {
+      if (file_name.trim().length != 0) {
+        file_name = removeIllegalChars(file_name);
+      } else {
+        file_name = info.videoDetails.title;
+      }
+      console.log(file_name);
+    });
+  } catch (err) {
+    console.error(err);
+    status.innerHTML = "Error: ";
+    status.style.color = "#e01400";
+    if (/ENOTFOUND/.test(err.message)) {
+      status.innerHTML += "Invalid URL. Check your internet connection";
     } else {
-      file_name = info.videoDetails.title;
+      status.innerHTML += err.message;
     }
-    console.log(file_name);
-  });
-
+  }
 };
 
-
-downloadBtn.addEventListener('click', (event) => {
+downloadBtn.addEventListener("click", (event) => {
   download();
-})
+});
