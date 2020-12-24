@@ -49,6 +49,11 @@ body p {
   outline: none;
 }
 
+#url-box::placeholder,
+#name-box::placeholder {
+  font-style: italic;
+}
+
 #download-btn {
   color: var(--secondary-text-color);
   padding: 12px;
