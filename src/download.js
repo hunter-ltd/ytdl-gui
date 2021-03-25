@@ -1,39 +1,27 @@
+const AudioFile = require("./audiofile.js");
 const electron = require("electron");
-const ffmpeg = require("fluent-ffmpeg");
-const ffmpegPath = require("@ffmpeg-installer/ffmpeg").path;
-const fs = require("fs");
 const path = require("path");
 const Store = require("./config.js");
+const Video = require("./video.js");
 const ytdl = require("ytdl-core");
 
-ffmpeg.setFfmpegPath(ffmpegPath); // ffmpeg is a built-in package and needs its path manually set
 const downloadBtn = document.getElementById("download-btn");
-const store = new Store({
-  configName: "user-settings",
-  defaults: {
-    savePath: electron.remote.app.getPath("downloads"),
-  },
-});
 
 /**
- * Removes characters deemed illegal for usage in file naming
- * @param {string} filepath The file path that needs to be parsed
- * @returns {string} A legal string
+ * Changes an HTML element to represent the status of a function
+ * @param {HTMLElement} status_element Element representing status
+ * @param {string} message Status message
+ * @param {string} color Status element color
  */
-let removeIllegalChars = (filepath) => {
-  const illegal = /[\\/:*?\"<>|]/g;
-  if (illegal.test(filepath)) {
-    let newPath = filepath.replace(illegal, "");
-    return newPath;
-  } else {
-    return filepath;
-  }
+let updateStatus = (status_element, message, color = "gray") => {
+  status_element.style.color = color;
+  status_element.innerHTML = message;
 };
 
 /**
- * Removes any extra info after the watch ID in a YouTube link
+ * Removes any extra info after the watch ID in a YouTube URL
  * @param {string} url The URL to be parsed
- * @returns {string} A link with only the watch ID attached
+ * @returns {string} URL with only the watch ID attached
  */
 let removeExtraYTInfo = (url) => {
   if (/&/.test(url)) {
@@ -44,85 +32,66 @@ let removeExtraYTInfo = (url) => {
 };
 
 /**
- *
- * @param {string} save_path Absolute path of the file being saved
- * @param {string} url URL of the video to be downloaded
- * @param {HTMLElement} status Status element
- */
-let saveFile = async (save_path, url, status) => {
-  return new Promise(async (resolve, reject) => {
-    let stream = ytdl(url, { filter: "audioonly" }),
-      output = ffmpeg(stream).save(save_path);
-
-    [stream, output].forEach((item) => item.on("error", (err) => reject(err)));
-    output
-      .on("start", () => (status.innerHTML = "Downloading..."))
-      .on("end", () => resolve(save_path));
-  });
-};
-
-/**
  * Downloads a YouTube video
- * @param {string} url URL
- * @param {HTMLElement} status A p element to show the status of the download
+ * @param {string} url Video URL
  * @param {string} file_name File name
- * @param {Store} store Settings storage object
  */
-let download = async (url, status, file_name, store) => {
-  url = removeExtraYTInfo(url);
-  status.style.color = "gray";
-  status.innerHTML = "Checking URL...";
-  // Not all of the errors reject promises, some are just thrown
+let download = async (url, file_name) => {
+  const store = new Store({
+    configName: "user-settings",
+    defaults: {
+      savePath: electron.remote.app.getPath("downloads"), // Kinda frowned upon, but should be ok for this
+    },
+  });
+  const status = document.getElementById("status");
+  // Not all errors reject the promise. Some are just thrown
+  updateStatus(status, "Retrieving video data...");
   try {
-    await ytdl.getBasicInfo(url).then((info) => {
-      if (file_name.trim().length != 0) {
-        file_name = removeIllegalChars(file_name);
-      } else {
-        file_name = info.videoDetails.title;
+    await ytdl.getBasicInfo(removeExtraYTInfo(url)).then((info) => {
+      const video = new Video(
+        info.videoDetails.video_url,
+        info.videoDetails.title
+      );
+      if (file_name.trim().length === 0) {
+        file_name = video.title;
       }
-      console.log(file_name + ".mp3");
+      const saved_file = new AudioFile(store.get("savePath"), file_name);
+      video.save(saved_file.path).then(() => {
+        updateStatus(
+          status,
+          `"${path.basename(saved_file.path)}" saved successfully`,
+          "#00c210"
+        );
+        saved_file.open();
+      });
     });
   } catch (err) {
     console.error(err);
-    status.innerHTML = "Error: ";
-    status.style.color = "#e01400";
+    let error_message = "Error: ";
     if (/ENOTFOUND/.test(err.message)) {
-      status.innerHTML += "Invalid URL. Check your internet connection";
+      error_message += "Invalid URL. Check your internet connection";
     } else {
-      status.innerHTML += err.message;
+      error_message += err.message;
     }
+    updateStatus(status, error_message, "#e01400");
   }
-  let save_path = path.join(store.get("savePath"), file_name + ".mp3");
-  saveFile(save_path, url, status)
-    .then((save_path) => {
-      status.style.color = "#00c210";
-      status.innerHTML = `${path.basename(save_path)} saved successfully.`;
-      electron.shell.showItemInFolder(save_path);
-    })
-    .catch((err) => {
-      console.error(err);
-      status.style.color = "#e01400";
-      status.innerHTML = `Error: ${err.message}`;
-    });
 };
 
 downloadBtn.addEventListener("click", (event) => {
-  let status = document.getElementById("status"),
-    url = document.getElementById("url-box").value,
+  let url = document.getElementById("url-box").value,
     file_name = document.getElementById("name-box").value;
 
-  download(url, status, file_name, store);
+  download(url, file_name);
 });
 
-// Pressing Enter clicks the download button
 [
   document.getElementById("url-box"),
-  document.getElementById("name-box"),
-].forEach((input) => {
-  input.addEventListener("keyup", (event) => {
+  document.getElementById("name-box")
+].forEach((item) => {
+  item.addEventListener("keyup", (event) => {
+    event.preventDefault();
     if (event.key == "Enter") {
-      event.preventDefault();
       downloadBtn.click();
     }
-  });
-});
+  })
+})

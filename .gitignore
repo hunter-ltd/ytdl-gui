@@ -1,3 +1,4 @@
-node_modules
-out
-.DS_Store
+node_modules/
+
+# Illustrator files
+*.ai

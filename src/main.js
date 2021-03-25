@@ -11,8 +11,10 @@ const createWindow = () => {
   const mainWindow = new BrowserWindow({
     width: 500,
     height: 550,
+    icon: path.join(app.getAppPath(), "build", "icon.png"),
     webPreferences: {
       nodeIntegration: true,
+      contextIsolation: true,
       enableRemoteModule: true,
     }
   });
@@ -30,13 +32,13 @@ const createWindow = () => {
         {
           label: 'GitHub Page',
           click() {
-            shell.openExternal('https://github.com/oxapathic/ytdl-gui')
+            shell.openExternal('https://github.com/hunter-ltd/StreamerTools')
           }
         },
         { label: "About YTDL GUI", selector: "orderFrontStandardAboutPanel:" },
         { type: "separator" },
         {
-          label: 'Save location',
+          label: 'Save folder',
           click() {
             var settingsWindow = new BrowserWindow({
               width: 500,
@@ -107,6 +109,11 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+
+if (process.platform === 'linux') {
+  app.disableHardwareAcceleration();
+}
+
 ipcMain.handle('getPath', async (event, path) => {
   const result = await app.getPath(path);
   return result;
