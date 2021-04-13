@@ -14,7 +14,7 @@ const createWindow = () => {
     icon: path.join(app.getAppPath(), "build", "icon.png"),
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: true,
+      contextIsolation: false,
       enableRemoteModule: true,
     }
   });
